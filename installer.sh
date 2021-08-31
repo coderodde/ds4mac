@@ -21,7 +21,7 @@ make > /dev/null
 cp ds_engine ~/.ds/ds_engine
 echo "Built the ds_engine."
 tag_file=~/.ds/tags
-touch tag_file
+touch $tag_file
 
 add_tag_to_file () {
 	grep $1 $tag_file > /dev/null

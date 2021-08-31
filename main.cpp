@@ -187,8 +187,6 @@ static void jumpToPreviousDirectory() {
     directoryTagEntryList >> ofs;
     ofs.close();
 
-    cout << "yeah: " << nextPath << std::endl;
-
     cout << OPERATION_SWITCH_DIRECTORY
          << '\n'
          << convertDirectoryNameToExactDirectoryName(nextPath)
