@@ -22,4 +22,5 @@ The above commands will add the following to your `~/.ds` directory:
     ds -S # list both the tags and their respective directories, sorted alphabetically by tags
     ds -d # list both the tags and their respective directories, sorted alphabetically by directories
     
-    ds tag 
+    ds tag # switch to the directory tagged by `tag` or match the topmost tag with the minimum Levenshtein distance
+    ds # switch to the previous directory. This allows the user to jump between two directories back and forth
