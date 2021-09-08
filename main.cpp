@@ -6,10 +6,11 @@
 #include <fstream>
 #include <string>
 #include <cstring>
-//#include <linux/limits.h>
 #include <pwd.h>
 #include <unistd.h>
 #include <vector>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 using com::github::coderodde::ds4mac::DirectoryTagEntry;
 using com::github::coderodde::ds4mac::DirectoryTagEntryList;
@@ -27,6 +28,8 @@ const string OPERATION_SWITCH_DIRECTORY = "switch_directory";
 const string OPERATION_DESCRIPTOR_SHOW_TAG_ENTRY_LIST =
         "show_tag_entry_list";
 
+const string OPERATION_NO_DIRECTORY = "no_directory";
+
 //// /////////////////
  // All the flags: //
 ///////////////// ////
@@ -36,7 +39,7 @@ const string FLAG_LIST_TAGS_SORTED = "-s";
 const string FLAG_LIST_BOTH_SORTED = "-S";
 const string FLAG_LIST_BOTH_SORTED_DIRS = "-d";
 const string FLAG_UPDATE_PREVIOUS = "--update-previous";
-const string PREV_TAG_NAME = "__dt_previous";
+const string PREV_TAG_NAME = "__ds_previous";
 
 // The path to the tag file, relative to the home directory:
 const string RELATIVE_TAG_FILE_PATH = "/.ds/tags";
@@ -153,6 +156,15 @@ static void checkOfstream(ofstream& ofs) {
     }
 }
 
+static bool directoryExists(string& dirName) {
+    struct stat info;
+
+    if (stat(dirName.data(), &info) != 0)
+        return false;
+
+    return info.st_mode & S_IFDIR;
+}
+
 //// //////////////////////////////////////////////////////////////////
  // Jumps to the directory to which dt was switching most recently: //
 ////////////////////////////////////////////////////////////////// ////
@@ -187,10 +199,17 @@ static void jumpToPreviousDirectory() {
     directoryTagEntryList >> ofs;
     ofs.close();
 
-    cout << OPERATION_SWITCH_DIRECTORY
-         << '\n'
-         << convertDirectoryNameToExactDirectoryName(nextPath)
-         << std::flush;
+    if (!directoryExists(nextPath)) {
+        cout << OPERATION_NO_DIRECTORY
+             << '\n'
+             << nextPath
+             << std::flush;
+    } else {
+        cout << OPERATION_SWITCH_DIRECTORY
+             << '\n'
+             << convertDirectoryNameToExactDirectoryName(nextPath)
+             << std::flush;
+    }
 }
 
 //// /////////////////////////////
@@ -271,7 +290,10 @@ static void listTagsOnly(
     for (size_t index = 0, sz = directoryTagEntryList.size();
          index < sz;
          index++) {
-        cout << directoryTagEntryList.at(index).getTagName() << "\n";
+        cout << directoryTagEntryList.at(index).getTagName();
+
+        if (index < sz - 1) 
+            cout << "\n";
     }
 }
 

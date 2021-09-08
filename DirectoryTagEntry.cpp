@@ -19,7 +19,7 @@ namespace com::github::coderodde::ds4mac {
     const std::string& DirectoryTagEntry::getTagName() const {
         return tagName;
     }
-
+ 
     const std::string& DirectoryTagEntry::getDirectoryName() const {
         return directoryName;
     }      

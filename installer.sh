@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 script_magic="alias ds='source ~/.ds/ds_script'"
 
@@ -24,8 +25,7 @@ tag_file=~/.ds/tags
 touch $tag_file
 
 add_tag_to_file () {
-	grep $1 $tag_file > /dev/null
-	if [ $? != 0 ]; then
+	if grep -q $1 $tag_file; then
 		echo $1 $2 >> $tag_file
 		echo Setting the tag $1 to directory $2 done.
 	fi

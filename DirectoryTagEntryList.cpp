@@ -114,7 +114,10 @@ namespace com::github::coderodde::ds4mac {
             i < sz;
             i++) {
             DirectoryTagEntry const& dte = directoryTagEntryList.at(i);
-            ofs << dte.getTagName() << " " << dte.getDirectoryName() << "\n";
+            ofs << dte.getTagName() << " " << dte.getDirectoryName();
+
+            if (i < sz - 1) 
+                ofs << "\n";
         }
     }
 }

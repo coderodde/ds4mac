@@ -2,8 +2,8 @@
  // Created by Rodion "rodde" Efremov on 20.11.2020. //
 //// ////////////////////////////////////////////// ////
 
-#ifndef COM_GITHUB_CODERODDE_DTPP4LINUX_DIRECTORY_TAG_ENTRY_LIST_H
-#define COM_GITHUB_CODERODDE_DTPP4LINUX_DIRECTORY_TAG_ENTRY_LIST_H
+#ifndef COM_GITHUB_CODERODDE_DS4MAC_DIRECTORY_TAG_ENTRY_LIST_H
+#define COM_GITHUB_CODERODDE_DS4MAC_DIRECTORY_TAG_ENTRY_LIST_H
 
 #include "DirectoryTagEntry.h"
 #include <vector>
@@ -30,4 +30,4 @@ namespace com::github::coderodde::ds4mac {
     };
 }
 
-#endif // COM_GITHUB_CODERODDE_DTPP4LINUX_DIRECTORY_TAG_ENTRY_LIST_H
+#endif // COM_GITHUB_CODERODDE_DS4MAC_DIRECTORY_TAG_ENTRY_LIST_H

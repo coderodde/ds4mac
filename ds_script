@@ -19,6 +19,9 @@ else
 		cd $next_path
 	elif [ "$command_type" == "show_tag_entry_list" ]; then
 		tail -n +2 $out_file
+	elif [ "$command_type" == "no_directory" ]; then
+		dir=$(tail -n 1 $out_file)
+		echo "\"$dir\" no such directory."
 	else
 		echo "Unknown command: $command_type"
 	fi
