@@ -36,7 +36,7 @@ namespace com::github::coderodde::ds4mac {
         const size_t len1 = str.length() + 1;
         const size_t len2 = tagName.length() + 1;
 
-        std::vector<std::vector<size_t>> distanceMatrix(len1);
+        std::vector<std::vector<size_t>> distanceMatrix(len1, std::vector<size_t>(len2));
 
         for (size_t i = 0; i < len1; i++) {
             std::vector<size_t> row(len2);

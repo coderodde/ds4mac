@@ -48,15 +48,13 @@ const string RELATIVE_TAG_FILE_PATH = "/.ds/tags";
  // Returns the entire path to the tag file. //
 /////////////////////////////////////////// ////
 static const string getTagFilePath() {
-    char* c_home_directory = getpwuid(getuid())->pw_dir;
-    size_t str_len = strlen(c_home_directory) + 1;
-    char* c_home_directory_copy = (char*) std::malloc(str_len);
-    std::strncpy(c_home_directory_copy,
-                 c_home_directory,
-                 str_len);
+    char* path_c_string = getenv("HOME");
+    string path_string = 
+        path_c_string == NULL ?
+            getpwuid(getuid())->pw_dir :
+            path_c_string;
 
-    string path(c_home_directory_copy);
-    return path += RELATIVE_TAG_FILE_PATH;
+    return path_string += RELATIVE_TAG_FILE_PATH;
 }
 
 //// /////////////////////////////////////////
@@ -76,10 +74,10 @@ static string getCurrentWorkingDirectory() {
 static const size_t getMaximumTagLength(DirectoryTagEntryList const& dtel) {
     size_t maximumTagLength = 0;
 
-    for (size_t index = 0, sz = dtel.size(); index < sz; index++) {
+    for (auto& entry : dtel) {
         maximumTagLength = 
             std::max(maximumTagLength,
-                     dtel.at(index).getTagName().length());
+                entry.getTagName().length());
     }
 
     return maximumTagLength;
@@ -156,13 +154,9 @@ static void checkOfstream(ofstream& ofs) {
     }
 }
 
-static bool directoryExists(string& dirName) {
-    struct stat info;
-
-    if (stat(dirName.data(), &info) != 0)
-        return false;
-
-    return info.st_mode & S_IFDIR;
+static bool directoryExists(string dir_path) {
+    struct stat buffer;
+    return (stat(dir_path.c_str(), &buffer) == 0);
 }
 
 //// //////////////////////////////////////////////////////////////////
@@ -196,7 +190,7 @@ static void jumpToPreviousDirectory() {
     ofs.open(tagFilePath, ofstream::out);
     checkOfstream(ofs);
 
-    directoryTagEntryList >> ofs;
+    ofs << directoryTagEntryList;
     ofs.close();
 
     if (!directoryExists(nextPath)) {
@@ -236,12 +230,14 @@ static void switchDirectory(std::string const& tag) {
         ofs.open(getTagFilePath(), std::ofstream::out);
         checkOfstream(ofs);
 
-        directoryTagEntryList >> ofs;
+        ofs << directoryTagEntryList;
         ofs.close();
 
         cout << OPERATION_SWITCH_DIRECTORY
              << '\n'
              << convertDirectoryNameToExactDirectoryName(nextDirectory);
+        
+        return;
     }
 
     if (directoryTagEntryList.size() == 1) {
@@ -256,8 +252,9 @@ static void switchDirectory(std::string const& tag) {
         ofs.open(getTagFilePath(), std::ofstream::out);
         checkOfstream(ofs);
 
-        directoryTagEntryList >> ofs;
+        ofs << directoryTagEntryList;
         ofs.close();
+        return;
     }
 
     DirectoryTagEntry* bestMatch = directoryTagEntryList[tag];
@@ -266,11 +263,20 @@ static void switchDirectory(std::string const& tag) {
     ofs.open(getTagFilePath(), std::ofstream::out);
     checkOfstream(ofs);
 
-    updatePreviousDirectory(directoryTagEntryList, 
-                            currentWorkingDirectory);
+    //updatePreviousDirectory(directoryTagEntryList, 
+    //                        currentWorkingDirectory);
 
-    directoryTagEntryList >> ofs;
+    ofs << directoryTagEntryList;
     ofs.close();
+
+    string nextPath = 
+    convertDirectoryNameToExactDirectoryName(
+        bestMatch->getDirectoryName());
+
+    if (!directoryExists(nextPath)) {
+        cout << OPERATION_NO_DIRECTORY << '\n' << nextPath;
+        return;
+    }
 
     // New line?
     cout << OPERATION_SWITCH_DIRECTORY
@@ -287,13 +293,14 @@ static void listTagsOnly(
 
     cout << OPERATION_DESCRIPTOR_SHOW_TAG_ENTRY_LIST << '\n';
 
-    for (size_t index = 0, sz = directoryTagEntryList.size();
-         index < sz;
-         index++) {
-        cout << directoryTagEntryList.at(index).getTagName();
+    size_t index = 0;
+    size_t sz = directoryTagEntryList.size();
 
-        if (index < sz - 1) 
-            cout << "\n";
+    for (auto& entry : directoryTagEntryList) {
+        cout << entry.getTagName();
+
+        if (index++ < sz - 1)
+            cout << '\n';
     }
 }
 
@@ -305,18 +312,17 @@ static void listTagsAndDirectories(
     cout << OPERATION_DESCRIPTOR_SHOW_TAG_ENTRY_LIST << '\n';
 
     size_t maxTagLength = getMaximumTagLength(directoryTagEntryList);
+    size_t index = 0;
+    size_t sz = directoryTagEntryList.size();
 
-    for (size_t index = 0, sz = directoryTagEntryList.size(); 
-         index < sz; 
-         index++) {
-        DirectoryTagEntry const& directoryTagEntry =
-            directoryTagEntryList.at(index);
+    for (auto& entry : directoryTagEntryList) {
+        cout << std::setw(maxTagLength + 1)
+             << entry.getTagName()
+             << ' '
+             << entry.getDirectoryName();
 
-        std::cout << std::setw(maxTagLength + 1)
-                  << directoryTagEntry.getTagName() 
-                  << ' '
-                  << directoryTagEntry.getDirectoryName()
-                  << '\n';
+        if (index++ < sz) 
+            cout << '\n';
     }
 }
 
@@ -391,10 +397,8 @@ static void processUpdatePrevious(string& dir) {
     ofstream ofs;
     ofs.open(getTagFilePath(), ofstream::out);
     checkOfstream(ofs);
-    directoryTagEntryList >> ofs;
+    ofs << directoryTagEntryList;
     ofs.close();
-
-    // return nextPath;
 }
 
 int main(int argc, char *argv[]) {
@@ -416,10 +420,11 @@ int main(int argc, char *argv[]) {
             string dir = argv[2];
             processUpdatePrevious(dir);
         }
+    } catch (std::runtime_error& err) {
+        cerr << err.what() << '\n';
+        return EXIT_FAILURE;
     } catch (char *const msg) {
         cerr << msg << '\n';
         return EXIT_FAILURE;
     }
-
-    return EXIT_SUCCESS;
 }

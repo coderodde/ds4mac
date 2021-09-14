@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <limits>
 #include <string>
+#include <stdexcept>
 //#include <linux/limits.h>
 
 using com::github::coderodde::ds4mac::DirectoryTagEntry;
@@ -15,7 +16,7 @@ using std::string;
 
 namespace com::github::coderodde::ds4mac {
 
-    const size_t DirectoryTagEntryList::size() const {
+    size_t DirectoryTagEntryList::size() const {
         return entries.size();
     }
 
@@ -52,12 +53,6 @@ namespace com::github::coderodde::ds4mac {
         return ptrBestDirectoryEntry;
     }
 
-    void DirectoryTagEntryList::operator<<(std::ifstream& ifs) {
-
-        using std::string;
-
-    }
-
     void DirectoryTagEntryList::sortByTags() {
         std::stable_sort(entries.begin(), entries.end(), DirectoryTagEntry::tagComparator);
     }
@@ -86,38 +81,45 @@ namespace com::github::coderodde::ds4mac {
         rtrim(s);
     }
 
-    void operator>>(
-        std::ifstream& ifs,
+    std::istream& operator>>(
+        std::istream& is,
         DirectoryTagEntryList& directoryTagEntryList) {
 
-        while (ifs.good() && !ifs.eof()) {
-
+        while (!is.eof() && is.good()) {
             string tag;
-            ifs >> tag;
+            is >> tag;
             trim(tag);
 
-            // Grab the rest of the line. 
-            // We need this isntead of >> in order to obtain 
-            // the space characters in the directory names.
             string dir;
-            getline(ifs, dir);
+            getline(is, dir);
             trim(dir);
 
             DirectoryTagEntry newDirectoryEntry(tag, dir);
             directoryTagEntryList << newDirectoryEntry;
         }
+
+        if (!is.eof())
+            throw std::runtime_error("istream failed");
+
+        return is;
     }
 
-    void operator>>(DirectoryTagEntryList const& directoryTagEntryList,
-                    std::ofstream& ofs) {
-        for (size_t i = 0, sz = directoryTagEntryList.size();
-            i < sz;
-            i++) {
-            DirectoryTagEntry const& dte = directoryTagEntryList.at(i);
-            ofs << dte.getTagName() << " " << dte.getDirectoryName();
+    std::ostream& operator<<(
+        std::ostream& os,
+        DirectoryTagEntryList const& dtel) {
+        size_t index = 0;
 
-            if (i < sz - 1) 
-                ofs << "\n";
+        for (auto &entry : dtel) {
+            os << entry.getTagName() << " " << entry.getDirectoryName();
+
+            if (index < dtel.size() - 1) {
+                os << '\n';
+            }
         }
+
+        if (os.fail()) 
+            throw std::runtime_error("ostream failed");
+
+        return os;
     }
 }

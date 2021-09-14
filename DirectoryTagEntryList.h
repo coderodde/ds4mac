@@ -15,18 +15,33 @@ namespace com::github::coderodde::ds4mac {
         std::vector<DirectoryTagEntry> entries;
 
     public:
-        const size_t size() const;
-        DirectoryTagEntryList& operator<<(DirectoryTagEntry const& directoryTagEntry);
+        auto begin() const {
+            return entries.begin();
+        }
+
+        auto end() const {
+            return entries.end();
+        }
+
+        size_t size() const;
+        DirectoryTagEntryList& operator<<(
+            DirectoryTagEntry const& directoryTagEntry);
+
         DirectoryTagEntry at(size_t index) const;
-        DirectoryTagEntry* operator[](std::string const& targetDirectoryName);
-        void operator<<(std::ifstream& ifs);
+        DirectoryTagEntry* operator[](
+            std::string const& targetDirectoryName);
+
         void sortByTags();
         void sortByDirectories();
-        void listTags();
-        void listTagsAndDirectories();
-        friend void operator>>(std::ifstream&, DirectoryTagEntryList&);
-        friend void operator>>(DirectoryTagEntryList const&, 
-                               std::ofstream&);
+
+        friend std::ostream&
+          operator<<(std::ostream&,
+                     DirectoryTagEntryList const&);
+
+
+        friend std::istream& operator>>(
+            std::istream& is,
+            DirectoryTagEntryList& directoryTagEntryList);
     };
 }
 
